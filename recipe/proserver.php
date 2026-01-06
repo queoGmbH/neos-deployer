@@ -31,14 +31,14 @@ task('install:set_globals', static function (): void {
     $GLOBALS['dbName'] = getDbName();
     $GLOBALS['dbUser'] = 'root';
     $GLOBALS['dbPassword'] = run('sudo cat /usr/local/etc/mysql-password');
-})->shallow()->setPrivate()->onRoles('Root');
+})->shallow()->hidden()->onRoles('Root');
 
 
 task('install:set_credentials', static function (): void {
     set('dbName', $GLOBALS['dbName']);
     set('dbUser', $GLOBALS['dbUser']);
     set('dbPassword', $GLOBALS['dbPassword']);
-})->shallow()->setPrivate();
+})->shallow()->hidden();
 
 
 desc('Check if a server email address is set');
@@ -47,7 +47,7 @@ task('install:check_server_email', function () {
         writebox('<strong>The variable serverEmail is not set</strong><br>Please add it to you deploy.yaml and start the installation again.', 'red');
         exit;
     }
-})->shallow()->setPrivate()->onRoles('Proserver');
+})->shallow()->hidden()->onRoles('Proserver');
 
 
 desc('Import your local database and persistent resources to the server');
@@ -66,7 +66,7 @@ task('install:import:database', static function (): void {
         dbExtract(get('release_path'), get('dbName'));
         dbRemoveLocalDump();
     }
-})->setPrivate()->onRoles('Proserver');
+})->hidden()->onRoles('Proserver');
 
 
 task('install:import:resources', static function (): void {
@@ -76,7 +76,7 @@ task('install:import:resources', static function (): void {
         resourcesDecompressNeos(parse('{{deploy_path}}/shared'));
         resourcesRepairPermissionsNeos();
     }
-})->setPrivate()->onRoles('Proserver');
+})->hidden()->onRoles('Proserver');
 
 
 desc('Activate Redis on the server');
@@ -146,7 +146,7 @@ task('domain:dns', static function (): void {
 
 task('domain:ssl:domain', static function (): void {
     $GLOBALS['domain'] = getRealHostname();
-})->setPrivate()->shallow()->onRoles('Proserver');
+})->hidden()->shallow()->onRoles('Proserver');
 
 task('domain:ssl:write', static function (): void {
     $file = '/var/www/letsencrypt/domains.txt';
@@ -195,7 +195,7 @@ To cancel enter <strong>exit</strong> as answer");
     run("echo '$uniqueDomains' > $file");
     deleteDuplicateBackupFile($file, $fileIndex);
     writebox('<strong>Following entries where added:</strong><br><br>' . \implode("\n", $domains), 'green');
-})->setPrivate()->shallow()->onRoles('Root');
+})->hidden()->shallow()->onRoles('Root');
 
 desc('Requested the SSl certificate');
 task('domain:ssl:request', static function (): void {
@@ -239,7 +239,7 @@ task('domain:force:ask', static function (): void {
         $suggestions = [$realHostname, $wwwDomain];
         $GLOBALS['domain'] = askDomain('Please enter the domain', $defaultDomain, $suggestions);
     }
-})->setPrivate()->shallow()->onRoles('Proserver');
+})->hidden()->shallow()->onRoles('Proserver');
 
 task('domain:force:write', static function (): void {
     if (!isset($GLOBALS['domain']) || $GLOBALS['domain'] === 'exit') {
@@ -281,7 +281,7 @@ task('domain:force:write', static function (): void {
     $fileContent = "{$httpRedirectEntry}\n{$httpsRedirectEntry}\n{$httpsEntry}";
     run("echo '{$fileContent}' > $confFile");
     deleteDuplicateBackupFile($confFile, $confFileIndex);
-})->setPrivate()->shallow()->onRoles('Root');
+})->hidden()->shallow()->onRoles('Root');
 
 desc('Configure the server to force a specific domain');
 task('domain:force', [
@@ -349,14 +349,14 @@ task('restart:server', static function (): void {
 
 task('install:update:nginx', static function (): void {
     run("sudo sed -i '' 's/neos\.conf/html\.conf/' /usr/local/etc/nginx/vhosts/ssl.conf");
-})->setPrivate()->onRoles('Root');
+})->hidden()->onRoles('Root');
 
 task('install:update:database', static function (): void {
     $oldDatabase = getDbNameFromConfigFile();
     $newDatabase = $GLOBALS['dbName'];
     renameDB($oldDatabase, $newDatabase);
     writeNewDbNameInConfigFile($newDatabase);
-})->setPrivate()->onRoles('Proserver');
+})->hidden()->onRoles('Proserver');
 
 
 task('install:update:proserver', [
@@ -371,7 +371,7 @@ task('install:update:proserver', [
     'install:elasticsearch',
     'restart:server',
     'deploy',
-])->shallow()->setPrivate();
+])->shallow()->hidden();
 
 after('install:update', 'install:update:proserver');
 
@@ -395,7 +395,7 @@ task('install:set_server:apache', static function (): void {
     run("sudo sed -i '' 's/^nginx_enable/apache24_enable/' $configFile");
     run('sudo service apache24 start');
     deleteDuplicateBackupFile($configFile, $configFileIndex);
-})->shallow()->setPrivate()->onRoles('Root');
+})->shallow()->hidden()->onRoles('Root');
 
 task('install:set_server:nginx', static function (): void {
     $configFile = '/etc/rc.conf';
@@ -404,7 +404,7 @@ task('install:set_server:nginx', static function (): void {
     run("sudo sed -i '' 's/^apache24_enable/nginx_enable/' $configFile");
     run('sudo service nginx start');
     deleteDuplicateBackupFile($configFile, $configFileIndex);
-})->shallow()->setPrivate()->onRoles('Root');
+})->shallow()->hidden()->onRoles('Root');
 
 
 task('install:apache', static function (): void {
@@ -427,7 +427,7 @@ task('install:apache', static function (): void {
 
     deleteDuplicateBackupFile($vhostConfFile, $vhostConfFileIndex);
     deleteDuplicateBackupFile($httpConfFile, $httpConfFileIndex);
-})->shallow()->setPrivate()->onRoles('Root');
+})->shallow()->hidden()->onRoles('Root');
 before('install:set_server:apache', 'install:apache');
 
 
@@ -445,7 +445,7 @@ task('install:nginx', static function (): void {
 
     deleteDuplicateBackupFile($sslConfFile, $sslConfFileIndex);
     deleteDuplicateBackupFile($htmlConfFile, $htmlConfFileIndex);
-})->shallow()->setPrivate()->onRoles('Root');
+})->shallow()->hidden()->onRoles('Root');
 before('install:set_server:nginx', 'install:nginx');
 
 
@@ -464,13 +464,13 @@ task('install:symlink', [
 task('install:symlink:ask', static function (): void {
     cd('{{html_path}}');
     $GLOBALS['symlinkAction'] = symlinkDomain();
-})->shallow()->onRoles('Proserver')->setPrivate();
+})->shallow()->onRoles('Proserver')->hidden();
 
 task('install:symlink:php', static function (): void {
     if ($GLOBALS['symlinkAction'] === 'setToDefault') {
         invoke('restart:php');
     }
-})->shallow()->onRoles('Root')->setPrivate();
+})->shallow()->onRoles('Root')->hidden();
 
 
 desc('Edit the cronjobs');
@@ -486,11 +486,11 @@ task('install:write_my_cnf', static function (): void {
         return;
     }
     run("echo '[client]\nuser = {{dbUser}}\npassword = {{dbPassword}}' > $file");
-})->setPrivate();
+})->hidden();
 
 
 $roleProserverTasks = [
-    'cleanup',
+    'deploy:cleanup',
     'deploy:flush_caches',
     'deploy:info',
     'deploy:lock',
@@ -558,7 +558,7 @@ task('install', [
     'deploy:publish_resources',
     'install:symlink',
     'deploy:symlink',
-    'cleanup',
+    'deploy:cleanup',
     'install:nginx',
     'install:apache',
     'restart:server',
@@ -574,4 +574,4 @@ after('rollback:publishresources', 'restart:php');
 task('install:settings', static function (): void {
     $settingsTemplate = parse(\file_get_contents(__DIR__ . '/../template/proserver/neos/Settings.yaml'));
     run("echo '$settingsTemplate' > {{release_path}}/Configuration/Settings.yaml");
-})->setPrivate()->onRoles('Proserver');
+})->hidden()->onRoles('Proserver');

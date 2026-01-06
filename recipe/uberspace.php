@@ -32,7 +32,7 @@ task('install', [
     'install:symlink',
     'deploy:symlink',
     'deploy:unlock',
-    'cleanup',
+    'deploy:cleanup',
     'install:success',
     'install:output_db'
 ]);
@@ -43,7 +43,7 @@ after('rollback:publishresources', 'restart:php');
 
 task('install:php_settings', static function (): void {
     run('echo "memory_limit = 1024M" > ~/etc/php.d/memory_limit.ini');
-})->shallow()->setPrivate();
+})->shallow()->hidden();
 
 
 task('install:set_credentials', static function (): void {
@@ -55,27 +55,27 @@ task('install:set_credentials', static function (): void {
         // We need to create the db
         run('mysql -e "CREATE DATABASE {{dbName}}"');
     }
-})->shallow()->setPrivate();
+})->shallow()->hidden();
 
 
 task('install:settings', static function (): void {
     $settingsTemplate = parse(\file_get_contents(__DIR__ . '/../template/uberspace/neos/Settings.yaml'));
     run("echo '$settingsTemplate' > {{release_path}}/Configuration/Settings.yaml");
-})->setPrivate();
+})->hidden();
 
 
 task('install:import:database', static function (): void {
     if (askConfirmation(' Do you want to import your local database? ', true)) {
         dbUploadNeos(get('release_path'), get('dbName'));
     }
-})->setPrivate();
+})->hidden();
 
 
 task('install:import:resources', static function (): void {
     if (askConfirmation(' Do you want to import your local persistent resources? ', true)) {
         resourcesUploadNeos(parse('{{deploy_path}}/shared'));
     }
-})->setPrivate();
+})->hidden();
 
 
 desc('Set the symbolic link for this site');
@@ -100,7 +100,7 @@ task('install:update:database', static function (): void {
     $newDatabase = getDbName();
     renameDB($oldDatabase, $newDatabase);
     writeNewDbNameInConfigFile($newDatabase);
-})->setPrivate();
+})->hidden();
 
 after('install:update', 'install:update:database');
 after('install:update:database', 'restart:php');
@@ -210,7 +210,7 @@ task('php:version:get', static function (): void {
     $availableVersions = run('uberspace tools version list php');
     set('phpVersionCurrent', $currentVersion[0]);
     set('phpVersionList', \explode(\PHP_EOL, \str_replace('- ', '', $availableVersions)));
-})->setPrivate();
+})->hidden();
 
 
 task('php:version:ask', static function (): void {
@@ -218,7 +218,7 @@ task('php:version:ask', static function (): void {
     $version = askChoice(' Please choose the desired version ', get('phpVersionList'));
     $output = run("uberspace tools version use php $version");
     writebox($output, 'green');
-})->shallow()->setPrivate();
+})->shallow()->hidden();
 
 
 desc('Edit the cronjobs');

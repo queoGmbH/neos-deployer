@@ -44,7 +44,7 @@ task('slack:notify', static function (): void {
     foreach (\array_unique($slackWebhook) as $hook) {
         Httpie::post($hook)->body(['attachments' => [$attachment]])->send();
     }
-})->once()->shallow()->setPrivate();
+})->once()->shallow()->hidden();
 
 desc('Notifying Slack about deploy finish');
 task('slack:notify:success', static function (): void {
@@ -66,7 +66,7 @@ task('slack:notify:success', static function (): void {
     foreach (\array_unique($slackWebhook) as $hook) {
         Httpie::post($hook)->body(['attachments' => [$attachment]])->send();
     }
-})->once()->shallow()->setPrivate();
+})->once()->shallow()->hidden();
 
 desc('Notifying Slack about deploy failure');
 task('slack:notify:failure', static function (): void {
@@ -88,7 +88,7 @@ task('slack:notify:failure', static function (): void {
     foreach (\array_unique($slackWebhook) as $hook) {
         Httpie::post($hook)->body(['attachments' => [$attachment]])->send();
     }
-})->once()->shallow()->setPrivate();
+})->once()->shallow()->hidden();
 
 before('deploy', 'slack:notify');
 after('success', 'slack:notify:success');

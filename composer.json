@@ -12,6 +12,6 @@
     "require": {
         "php": "^7.2 || ^8.0",
         "ext-intl": "*",
-        "deployer/deployer": "^6.9"
+        "deployer/deployer": "^7.5"
     }
 }

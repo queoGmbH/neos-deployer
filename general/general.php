@@ -37,7 +37,7 @@ task('ssh:key', static function () {
 
 task('install:info', static function (): void {
     writebox('✈︎ Installing <strong>' . getRealHostname() . '</strong> on <strong>{{hostname}}</strong>');
-})->shallow()->setPrivate();
+})->shallow()->hidden();
 
 
 desc('Wait for the user to continue');
@@ -49,12 +49,12 @@ task('install:wait', static function (): void {
         exit;
     }
     writeln('');
-})->shallow()->setPrivate();
+})->shallow()->hidden();
 
 
 task('install:create_database', static function (): void {
     run(\sprintf('echo %s | mysql', \escapeshellarg(dbFlushDbSql(get('dbName')))));
-})->setPrivate();
+})->hidden();
 
 
 task('install:output_db', static function (): void {
@@ -66,7 +66,7 @@ task('install:output_db', static function (): void {
             'Password' => '{{dbPassword}}'
         ]
     );
-})->shallow()->setPrivate();
+})->shallow()->hidden();
 
 
 task('install:output_oauth', static function (): void {
@@ -78,19 +78,19 @@ task('install:output_oauth', static function (): void {
             'Name' => getRealHostname() . ' on {{hostname}}'
         ]
     );
-})->shallow()->setPrivate();
+})->shallow()->hidden();
 
 task('deploy:git_config', static function () {
     cd('{{release_path}}');
     run('{{bin/git}} config --local --add core.sshCommand "ssh -i ~/.ssh/{{sshKey}}"');
-})->setPrivate();
+})->hidden();
 after('deploy:update_code', 'deploy:git_config');
 
 
 task('install:success', static function (): void {
     $stage = has('stage') ? ' {{stage}}' : '';
     writebox('<strong>Successfully installed!</strong><br>To deploy your site in the future, simply run <strong>dep deploy' . $stage . '</strong>', 'green');
-})->shallow()->setPrivate();
+})->shallow()->hidden();
 
 
 desc('Create release tag on git');
@@ -124,7 +124,7 @@ task('install:update:deployfolder', static function (): void {
         run('mv Neos {{deploy_folder}}');
         writebox('Neos was renamed to {{deploy_folder}}');
     }
-})->shallow()->setPrivate();
+})->shallow()->hidden();
 
 task('install:update:sshkey', static function () {
     cd('~/.ssh');
@@ -133,10 +133,10 @@ task('install:update:sshkey', static function () {
         run('mv id_rsa.pub {{sshKey}}.pub');
         writebox('The default ssh key <strong>id_rsa</strong> was renamed to <strong>{{sshKey}}</strong>');
     }
-})->shallow()->setPrivate();
+})->shallow()->hidden();
 
 
-// Set some deploy tasks to private
+// Set some deploy tasks to hidden
 foreach ([
     'clear_paths',
     'copy_dirs',
@@ -149,5 +149,5 @@ foreach ([
     'vendors',
     'writable'
 ] as $task) {
-    task("deploy:{$task}")->setPrivate();
+    task("deploy:{$task}")->hidden();
 }

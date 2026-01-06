@@ -30,7 +30,7 @@ task('install', [
     'install:symlink',
     'deploy:symlink',
     'deploy:unlock',
-    'cleanup',
+    'deploy:cleanup',
     'install:success',
     'install:output_db'
 ]);
@@ -81,7 +81,7 @@ Neos:
             relativeSymlinks: true
 __EOF__
 ');
-})->setPrivate();
+})->hidden();
 
 
 task('install:import_database', static function () {
@@ -94,14 +94,14 @@ task('install:import_database', static function () {
             get('dbHost')
         );
     }
-})->setPrivate();
+})->hidden();
 
 
 task('install:import_resources', static function () {
     if (askConfirmation(' Do you want to import your local persistent resources? ', true)) {
         resourcesUpload(parse('{{deploy_path}}/shared'));
     }
-})->setPrivate();
+})->hidden();
 
 
 task('install:symlink', static function () {
@@ -110,7 +110,7 @@ task('install:symlink', static function () {
         run('rm -f {{html_folder}}');
         run('ln -s {{deploy_path}}/current {{html_folder}}');
     });
-})->setPrivate();
+})->hidden();
 
 
 desc('Edit the cronjobs');

@@ -19,7 +19,7 @@ task('deploy:remove_robotstxt', static function (): void {
     if (get('removeRobotsTxt', true)) {
         run('rm -f {{release_path}}/Web/robots.txt');
     }
-})->setPrivate();
+})->hidden();
 before('deploy:symlink', 'deploy:remove_robotstxt');
 
 
@@ -31,7 +31,7 @@ task('deploy:flush_caches', static function (): void {
             run('FLOW_CONTEXT={{flow_context}} {{bin/php}} {{release_path}}/{{flow_command}} cache:flushone ' . $cache);
         }
     }
-})->setPrivate();
+})->hidden();
 after('deploy:symlink', 'deploy:flush_caches');
 
 
@@ -49,7 +49,7 @@ task('install:check', static function (): void {
         writebox('<strong>Neos seems already installed</strong><br>Please remove the whole Neos folder to start over again.', 'red');
         exit;
     }
-})->shallow()->setPrivate();
+})->shallow()->hidden();
 
 
 desc('Repair inconsistent nodes in the content repository');
@@ -159,5 +159,5 @@ task('edit:settings', static function (): void {
 // Execute flow publish resources after a rollback (path differs, because release_path is the old one here)
 task('rollback:publishresources', static function (): void {
     run('FLOW_CONTEXT={{flow_context}} {{bin/php}} {{release_path}}/{{flow_command}} resource:publish');
-})->setPrivate();
+})->hidden();
 after('rollback', 'rollback:publishresources');
